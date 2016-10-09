@@ -1,0 +1,31 @@
+{
+  "name": "get-novel",
+  "version": "1.0.0",
+  "description": "get novel",
+  "main": "index.js",
+  "scripts": {
+    "start": "node --harmony ./src/index.js",
+    "merge": "node --harmony ./src/marge.js",
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+ssh://git@github.com/wangpin34/git-novel.git"
+  },
+  "keywords": [
+    "get",
+    "novel"
+  ],
+  "author": "wangpin",
+  "license": "MIT",
+  "bugs": {
+    "url": "https://github.com/wangpin34/git-novel/issues"
+  },
+  "homepage": "https://github.com/wangpin34/git-novel#readme",
+  "dependencies": {
+    "bluebird": "^3.4.0",
+    "cheerio": "^0.20.0",
+    "iconv-lite": "^0.4.13",
+    "request-promise": "^3.0.0"
+  }
+}
