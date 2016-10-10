@@ -14,7 +14,7 @@ const common = require('./utils/common')
 const rp = require('./utils/request')
 const merge = require('./merge')
 
-const dirUrl = 'http://www.biquge.info/0_770/' //目录页地址
+const dirUrl = 'http://www.biquge.tw/35_35382/' //目录页地址
 const dirPoint = 'div#list dl dd a' //选择一章
 const titlePoint = 'div.bookname h1' //章内的标题
 const articlePoint = 'div#content' //章内的内容
@@ -32,12 +32,17 @@ common.mkDirIfNonexists(tmpFolder).then(() => {
 
 let errors = []
 let urlObj = url.parse(dirUrl)
-let rootPath = common.computeRootPath(dirUrl)
-console.log('Root path is %s', rootPath)
+let currentPath = common.computeRootPath(dirUrl)
+let rootPath = urlObj.protocol + '//' + urlObj.host
+console.log('Current path is %s', currentPath)
 
 const download = (url, filepath, code, retry = false) => {
     if(url.indexOf('http') !== 0 && url.indexOf('https') !== 0){
-        url = rootPath + url
+        if(url.charAt('0') === '/'){
+            url = rootPath + url
+        }else{
+            url = currentPath + url
+        }
     }
     if(retry){
         console.log('Retry download %s', url)
@@ -49,10 +54,19 @@ const download = (url, filepath, code, retry = false) => {
             let title = $(titlePoint).html()
             if(title){
                 title.replace(/&nbsp;/ig, ' ')
+                let titleReg = /^([0]+)([\d]+)\s+([\d\D]+$)/
+                let result = titleReg.exec(title)
+                if(result){
+                    if(result[2]){
+                        title = '第 ' + result[2] + ' 章 ' + result[3]
+                    }else{
+                        title = '第 ' + 0 + ' 章 ' + result[3]
+                    }
+                }
             }
             let content = $(articlePoint).text()
             if(content){
-                content = content.replace(/&nbsp;/ig, ' ').replace(/[<br>|<p>|<\/p>]{1}/ig,'\n').replace(/<[^>]+>/ig, '')
+                content = content.replace(/&[^;]+;/ig, ' ').replace(/[<br>|<p>|<\/p>]{1}/ig,'\n').replace(/<[^>]+>/ig, '')
             }
             return fs.writeFileAsync(filepath, '\n' + title + '\n' + content).then(err => {
                 err ?  errors.push('Save ' + url + ' failed') : null
@@ -68,7 +82,6 @@ const download = (url, filepath, code, retry = false) => {
 
 common.getCodeOfPage(dirUrl).then(code => {
     console.log('Target url charset is %s', code)
-
     rp.get(dirUrl)
     	.then(html => {
             html = iconv.decode(html, code)
@@ -82,31 +95,6 @@ common.getCodeOfPage(dirUrl).then(code => {
     			return href !== ''
     		}).map((url,index) => {
                 return download(url, path.join(chaptersFolder, index + '.txt'), code)
-                // if(href.indexOf('http') !== 0 || href.indexOf('https') !== 0){
-                //     href = rootPath + href
-                // }
-    			// return rp.get(href)
-    			// 	.then(body => {
-                //
-                //         html = iconv.decode(body, code)
-    			// 		let $ = cheerio.load(html, {decodeEntities: false})
-    			// 		let title = $(titlePoint).html()
-                //         if(title){
-                //             title.replace(/&nbsp;/ig, ' ')
-                //         }
-    			// 		let content = $(articlePoint).text()
-                //         if(content){
-                //             content = content.replace(/&nbsp;/ig, ' ').replace(/[<br>|<p>|<\/p>]{1}/ig,'\n').replace(/<[^>]+>/ig, '')
-                //         }
-                //         let target = path.join(chaptersFolder, index + '.txt')
-    			// 		return fs.writeFileAsync(target, '\n' + title + '\n' + content).then(err => {
-    			// 			err ?  errors.push('Save ' + href + ' failed') : null
-    			// 			return target
-    			// 		})
-    			// 	})
-                //     .catch(err => {
-                //         errors.push('Download ' + href + ' failed')
-                //     })
     		})
 
     		return Promise.all(chapters)
@@ -115,8 +103,8 @@ common.getCodeOfPage(dirUrl).then(code => {
             console.log('try to merge %s chapters into single file', chapters ? chapters.length : 0)
             merge(chapters)
     	}).catch(err => {
-            console.error('unexpected err happened')
             errors.push(err)
+            console.log(errors)
         })
 
 })
