@@ -1,5 +1,8 @@
 const cheerio = require('cheerio')
 const rp = require('./request')
+const path = require('path')
+const Promise = require('bluebird')
+const fs = Promise.promisifyAll(require('fs'))
 
 
 const getCode = html => {
@@ -43,6 +46,32 @@ const isNodePath = path => {
     return false
 }
 
+const computeRootPath = indexPath => {
+    let rootPath = indexPath
+    if(isNodePath(indexPath)){
+        rootPath = path.dirname(indexPath)
+    }
+    if(rootPath.charAt(rootPath.length - 1) !== '/'){
+        rootPath = rootPath + '/'
+    }
+    return rootPath
+}
+
+const mkDirIfNonexists = dir => {
+    return fs.statAsync(dir).then(exists => {
+        if(exists){
+            return new Promise((resolve,reject) => { resolve(true)})
+        }
+        return fs.mkdirAsync(dir).then(err => {
+            if(err) throw err
+    		console.log('%s is created', dir)
+            return
+    	})
+    })
+}
+
 exports.getCode = getCode
 exports.getCodeOfPage = getCodeOfPage
 exports.isNodePath = isNodePath
+exports.computeRootPath = computeRootPath
+exports.mkDirIfNonexists = mkDirIfNonexists

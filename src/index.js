@@ -21,20 +21,49 @@ const articlePoint = 'div#content' //章内的内容
 
 let file = 'novel.txt'
 let tmpFolder = path.join(os.homedir(), 'get-novel-tmp')
+let chaptersFolder = path.join(tmpFolder, 'chapters')
 
-fs.exists(tmpFolder, exists => {
-	exists ||
-	fs.mkdir(tmpFolder, err => {
-		if(err) throw err
-		console.log('folder tmp created')
-	})
+common.mkDirIfNonexists(tmpFolder).then(() => {
+    common.mkDirIfNonexists(chaptersFolder)
+}).catch(err => {
+    console.log(err)
+    process.exit()
 })
 
-
+let errors = []
 let urlObj = url.parse(dirUrl)
-let rootPath = dirUrl
-if(common.isNodePath(dirUrl)){
-    rootPath = path.dirname(dirUrl)
+let rootPath = common.computeRootPath(dirUrl)
+console.log('Root path is %s', rootPath)
+
+const download = (url, filepath, code, retry = false) => {
+    if(url.indexOf('http') !== 0 && url.indexOf('https') !== 0){
+        url = rootPath + url
+    }
+    if(retry){
+        console.log('Retry download %s', url)
+    }
+    return rp.get(url)
+        .then(body => {
+            let html = iconv.decode(body, code)
+            let $ = cheerio.load(html, {decodeEntities: false})
+            let title = $(titlePoint).html()
+            if(title){
+                title.replace(/&nbsp;/ig, ' ')
+            }
+            let content = $(articlePoint).text()
+            if(content){
+                content = content.replace(/&nbsp;/ig, ' ').replace(/[<br>|<p>|<\/p>]{1}/ig,'\n').replace(/<[^>]+>/ig, '')
+            }
+            return fs.writeFileAsync(filepath, '\n' + title + '\n' + content).then(err => {
+                err ?  errors.push('Save ' + url + ' failed') : null
+                return filepath
+            })
+        })
+        .catch(err => {
+            errors.push('Download ' + url + ' failed')
+            console.warn(err)
+            download(url, filepath, code, true)
+        })
 }
 
 common.getCodeOfPage(dirUrl).then(code => {
@@ -45,46 +74,49 @@ common.getCodeOfPage(dirUrl).then(code => {
             html = iconv.decode(html, code)
             fs.writeFile('index.html', html)
     		let $ = cheerio.load(html, {decodeEntities: false})
-
-    		let chapters = $(dirPoint).toArray().map((el) => {
+            let chapters =  $(dirPoint).toArray()
+            console.log('There are %s chapters', chapters.length)
+    		chapters = chapters.map((el) => {
     			return $(el).attr('href')
     		}).filter(href => {
     			return href !== ''
-    		}).map((href,index) => {
-                if(href.indexOf('http') !== 0 || href.indexOf('https') !== 0){
-                    href = rootPath + '/' + href
-                }
-                console.log('Try to fetch content from %s', href)
-    			return rp.get(href)
-    				.then(body => {
-                        console.log('Fetched content from %s', href)
-                        html = iconv.decode(body, code)
-    					let $ = cheerio.load(html, {decodeEntities: false})
-    					let title = $(titlePoint).html()
-                        if(title){
-                            title.replace(/&nbsp;/ig, ' ')
-                        }
-    					let content = $(articlePoint).text()
-                        if(content){
-                            content = content.replace(/&nbsp;/ig, ' ').replace(/[<br>|<p>|<\/p>]{1}/ig,'\n').replace(/<[^>]+>/ig, '')
-                        }
-    					return fs.writeFileAsync(path.join(tmpFolder, index + '.txt'), '\n' + title + '\n' + content).then(err => {
-    						err ?  console.error('chatper ' + index + 'download failed.') :
-    						console.info('chatper ' + index + 'download succeed.')
-    						return path.join(tmpFolder, index + '.txt')
-    					})
-    				})
+    		}).map((url,index) => {
+                return download(url, path.join(chaptersFolder, index + '.txt'), code)
+                // if(href.indexOf('http') !== 0 || href.indexOf('https') !== 0){
+                //     href = rootPath + href
+                // }
+    			// return rp.get(href)
+    			// 	.then(body => {
+                //
+                //         html = iconv.decode(body, code)
+    			// 		let $ = cheerio.load(html, {decodeEntities: false})
+    			// 		let title = $(titlePoint).html()
+                //         if(title){
+                //             title.replace(/&nbsp;/ig, ' ')
+                //         }
+    			// 		let content = $(articlePoint).text()
+                //         if(content){
+                //             content = content.replace(/&nbsp;/ig, ' ').replace(/[<br>|<p>|<\/p>]{1}/ig,'\n').replace(/<[^>]+>/ig, '')
+                //         }
+                //         let target = path.join(chaptersFolder, index + '.txt')
+    			// 		return fs.writeFileAsync(target, '\n' + title + '\n' + content).then(err => {
+    			// 			err ?  errors.push('Save ' + href + ' failed') : null
+    			// 			return target
+    			// 		})
+    			// 	})
+                //     .catch(err => {
+                //         errors.push('Download ' + href + ' failed')
+                //     })
     		})
 
     		return Promise.all(chapters)
     	}).then(chapters => {
+            console.log(errors)
             console.log('try to merge %s chapters into single file', chapters ? chapters.length : 0)
-            merge(chapters.map(c => {
-                return path.join(tmpFolder, c)
-            }))
+            merge(chapters)
     	}).catch(err => {
-            console.error('err happened')
-            console.error(err)
+            console.error('unexpected err happened')
+            errors.push(err)
         })
 
 })

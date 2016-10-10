@@ -7,6 +7,7 @@ const path = require('path')
 
 let file = 'novel.txt'
 let tmpFolder = path.join(os.homedir(), 'get-novel-tmp')
+let chaptersFolder = path.join(tmpFolder, 'chapters')
 let targetFile = path.join(tmpFolder, file)
 let reg = /^([\d]+\.txt$)/
 
@@ -22,8 +23,7 @@ const merge = (files) => {
             resolve()
         })
     }else{
-        return fs.readdirAsync(tmpFolder).then(files => {
-            console.log(files)
+        return fs.readdirAsync(chaptersFolder).then(files => {
             files = files.filter(name => {
                 return reg.test(name)
             }).sort((a, b) => {
@@ -31,12 +31,11 @@ const merge = (files) => {
                 let bNum = parseInt(b.substring(0, b.indexOf('.')))
                 return aNum - bNum
             }).map(name => {
-                return path.join(tmpFolder, name)
+                return path.join(chaptersFolder, name)
             })
 
             return files
         }).then(files => {
-            console.log(files)
             fs.existsSync(targetFile) && fs.unlinkSync(targetFile)
             files.forEach((file, index) => {
                 let content = fs.readFileSync(file)
