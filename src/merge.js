@@ -57,4 +57,4 @@ if(path.basename(process.argv[1]) === 'merge.js'){
     merge()
 }
 
-exports.default = merge
+exports = merge
