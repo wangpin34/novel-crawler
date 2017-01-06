@@ -1,4 +1,4 @@
 {
-    "enableProxy": true,
-    "proxy": "http://web-proxy.austin.hp.com:8080/"
+    "enableProxy": false,
+    "proxy": ""
 }
