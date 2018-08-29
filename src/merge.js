@@ -4,9 +4,10 @@ const Promise = require('bluebird')
 const fs = Promise.promisifyAll(require('fs'))
 const os = require('os')
 const path = require('path')
+const config = require('./config')
 
 let file = 'novel.txt'
-let tmpFolder = path.join(os.homedir(), 'get-novel-tmp')
+let tmpFolder = config.downloadFolder
 let chaptersFolder = path.join(tmpFolder, 'chapters')
 let targetFile = path.join(tmpFolder, file)
 let reg = /^([\d]+\.txt$)/
