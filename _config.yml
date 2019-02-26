@@ -8,7 +8,7 @@ encode: UTF-8
 
 book:
   name: novel
-  endpoint: https://www.maopaoke.com/chapter/274441/
-  dir_point: .chapterList li
-  title_point: div.m-read-content h3
-  article_point: div.m-read-content div div
+  endpoint: https://m.mxzw.com/wapbook/111242.html
+  dir_point: div#chapterlist p a
+  title_point: header#top + span
+  article_point: div#chaptercontent

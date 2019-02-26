@@ -35,6 +35,6 @@ exports.isNodePath = isNodePath
 exports.computeRootPath = computeRootPath
 exports.mkDirIfNonexists = mkDirIfNonexists
 
-if(path.basename(process.argv[1]) === 'common.js'){
+if(process.argv[1] === __filename){
   mkDirIfNonexists(path.join(__dirname, 'tmp'))
 }

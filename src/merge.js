@@ -53,8 +53,7 @@ const merge = (files) => {
     }
 }
 
-console.log('***********************************')
-if(path.basename(process.argv[1]) === 'merge.js'){
+if(process.argv[1] === __filename){
     merge()
 }
 

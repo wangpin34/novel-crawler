@@ -18,13 +18,8 @@ const loadMeta = () => {
 
       chapters = chapters.map((el) => {
         //TODO, AI to make this smart
-        let reg = /^jumpDownload\(([\d]+),([\d]+)\)$/ig
-        let results = reg.exec($(el).attr('onclick'))
-        if (results && results.length >= 3) {
-          return config.book.endpoint + results[2]
-        } else {
-          return null
-        }
+        let target = $(el).attr('href')
+        return target
       })
       .filter(href => {
         return href
@@ -140,7 +135,7 @@ module.exports = {
   download
 }
 
-if(path.basename(process.argv[1]) === 'book.js'){
+if(process.argv[1] === __filename){
   loadMeta().then(chapters => {
     downloadChapters(chapters, 50)
   })

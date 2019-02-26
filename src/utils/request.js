@@ -7,11 +7,14 @@ if (config.proxy && config.proxy.enabled) {
   rp = rp.defaults({proxy: `${config.proxy.protocol}://${config.proxy.host}:${config.proxy.port}`})
 }
 
+rp.defaults({strictSSL: false})
+
 const optTemplate = {
   encoding: null,
   headers: {
     'User-Agent': 'Mozilla/5.0 (Windows NT 6.1; WOW64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/53.0.2785.116 Safari/537.36'
   },
+  strictSSL: false,
   transform: function (body, response) {
     if (response.statusCode == 200) {
       let contentType = response.headers['content-type']
@@ -43,7 +46,7 @@ exports.perform = perform
 exports.get = get
 exports.buildOptByUrl = buildOptByUrl
 
-if(path.basename(process.argv[1]) === 'request.js'){
+if(process.argv[1] === __filename){
   get('https://github.com/request/request-promise')
     .then(data => {
       console.log(data.$.html())

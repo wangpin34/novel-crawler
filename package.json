@@ -4,7 +4,7 @@
   "description": "download novel",
   "main": "index.js",
   "scripts": {
-    "start": "node --harmony ./src/index.js",
+    "start": "node --harmony ./src/book.js",
     "merge": "node --harmony ./src/marge.js",
     "test": "echo \"Error: no test specified\" && exit 1"
   },
