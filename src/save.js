@@ -9,7 +9,10 @@ event.on('downloaded', chapter => {
 }) 
 
 save = (chapter) => {
-  fs.writeFile(path.join(config.downloadFolder, 'chapters', chapter.filename), chapter.text, err => {
+  let filepath = path.join(config.downloadFolder, 'chapters', chapter.filename)
+  console.log(`Try to save in ${filepath}`)
+  console.log(chapter.text)
+  fs.writeFile(filepath, chapter.text, err => {
     console.error(err)
   })  
 }

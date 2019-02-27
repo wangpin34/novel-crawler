@@ -53,8 +53,12 @@ const merge = (files) => {
     }
 }
 
-if(process.argv[1] === __filename){
-    merge()
+module.exports = {
+  merge: merge
 }
 
-exports = merge
+if(process.argv[1] === __filename){
+  merge()
+}
+
+

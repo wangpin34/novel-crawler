@@ -1,11 +1,13 @@
 const path = require('path')
 const url = require('url')
+const process = require('process')
 const common = require('./utils/common')
 const request = require('./utils/request')
 const config = require('./config')
 const save = require('./save')
 
 const loadMeta = () => {
+  console.log(process.argv)
   let urlObj = url.parse(config.book.endpoint)
   let currentPath = common.computeRootPath(config.book.endpoint)
   let rootPath = urlObj.protocol + '//' + urlObj.host
@@ -35,6 +37,7 @@ const loadMeta = () => {
         }
         return {index: index, url: href, downloaded: false, filename: index + '.txt', downNum: 0}
       })
+
       return chapters
   })
 }
@@ -43,21 +46,16 @@ const download = (chapter) => {
   chapter.downNum += 1
   let url = chapter.url
   let filepath = chapter.filepath
+  console.log(chapter)
+  console.log(`Try to download ${url} into ${filepath}`)
   return request.get(url)
     .then(data => {
       let { $ } = data
       let title = $(config.book.title_point).html()
       if(title){
         title.replace(/&nbsp;/ig, ' ')
-        let titleReg = /^([0]+)([\d]+)\s+([\d\D]+$)/
-        let result = titleReg.exec(title)
-        if(result){
-          if (result[2]) {
-            title = '第 ' + result[2] + ' 章 ' + result[3]
-          } else {
-            title = '第 ' + 0 + ' 章 ' + result[3]
-          }
-        }
+      }else{
+        title = `第 ${chapter.index} 章`
       }
       let article = $(config.book.article_point).html()
       if (article) {

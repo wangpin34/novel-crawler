@@ -8,7 +8,9 @@ encode: UTF-8
 
 book:
   name: novel
-  endpoint: https://m.mxzw.com/wapbook/111242.html
-  dir_point: div#chapterlist p a
-  title_point: header#top + span
-  article_point: div#chaptercontent
+  endpoint: https://m.mxzw.com/wapbook/111242/ # index page
+  dir_point: div#chapterlist p a # css selector for chapter item on index page
+  title_point: header#top span.title # css selector for chapter title on chapter page
+  article_point: div#chaptercontent # css selector for chapter content
+
+downloadFolder: /download
